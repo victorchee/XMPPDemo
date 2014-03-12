@@ -14,6 +14,7 @@
 @class XMPPMessage;
 @class XMPPPresence;
 @class XMPPModule;
+@class XMPPElement;
 @class XMPPElementReceipt;
 @protocol XMPPStreamDelegate;
 
@@ -222,6 +223,22 @@ extern const NSTimeInterval XMPPStreamTimeoutNone;
  * Tag values are not used internally, and should not be used by xmpp modules.
 **/
 @property (readwrite, strong) id tag;
+
+/**
+ * RFC 6121 states that starting a session is no longer required.
+ * To skip this step set skipStartSession to YES.
+ *
+ * [RFC3921] specified one additional
+ * precondition: formal establishment of an instant messaging and
+ * presence session.  Implementation and deployment experience has
+ * shown that this additional step is unnecessary.  However, for
+ * backward compatibility an implementation MAY still offer that
+ * feature.  This enables older software to connect while letting
+ * newer software save a round trip.
+ *
+ * The default value is NO.
+**/
+@property (readwrite, assign) BOOL skipStartSession;
 
 #if TARGET_OS_IPHONE
 
@@ -588,6 +605,18 @@ extern const NSTimeInterval XMPPStreamTimeoutNone;
  * Using this method guarantees everything is done as an atomic operation.
 **/
 - (void)resendMyPresence;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma mark Stanza Validation
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Validates that a response element is FROM the jid that the request element was sent TO.
+ * Supports validating responses when request didn't specify a TO.
+**/
+- (BOOL)isValidResponseElementFrom:(XMPPJID *)from forRequestElementTo:(XMPPJID *)to;
+
+- (BOOL)isValidResponseElement:(XMPPElement *)response forRequestElement:(XMPPElement *)request;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark Module Plug-In System

@@ -46,7 +46,7 @@
     BOOL success = NO;
     
     if (![self.xmppStream isConnected]) {
-        NSString *userName = @"chee@victorchee.com";
+        NSString *userName = @"chee@chee.com";
         XMPPJID *jid = [XMPPJID jidWithString:userName];
         [self.xmppStream setMyJID:jid];
         [self.xmppStream setHostName:@"192.168.1.101"];

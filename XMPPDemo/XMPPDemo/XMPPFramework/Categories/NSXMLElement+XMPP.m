@@ -8,6 +8,60 @@
 @implementation NSXMLElement (XMPP)
 
 /**
+ * Convenience methods for Creating elements.
+**/
+
++ (NSXMLElement *)elementWithName:(NSString *)name numberValue:(NSNumber *)number
+{
+    return [self elementWithName:name stringValue:[number stringValue]];
+}
+
+- (id)initWithName:(NSString *)name numberValue:(NSNumber *)number
+{
+    return [self initWithName:name stringValue:[number stringValue]];
+}
+
++ (NSXMLElement *)elementWithName:(NSString *)name objectValue:(id)objectValue
+{
+    if([objectValue isKindOfClass:[NSString class]])
+    {
+        return [self elementWithName:name stringValue:objectValue];
+    }
+    else if([objectValue isKindOfClass:[NSNumber class]])
+    {
+        return [self elementWithName:name numberValue:objectValue];
+    }
+    else if([objectValue respondsToSelector:@selector(stringValue)])
+    {
+        return [self elementWithName:name stringValue:[objectValue stringValue]];
+    }
+    else
+    {
+        return [self elementWithName:name];
+    }
+}
+
+- (id)initWithName:(NSString *)name objectValue:(id)objectValue
+{
+    if([objectValue isKindOfClass:[NSString class]])
+    {
+        return [self initWithName:name stringValue:objectValue];
+    }
+    else if([objectValue isKindOfClass:[NSNumber class]])
+    {
+        return [self initWithName:name numberValue:objectValue];
+    }
+    else if([objectValue respondsToSelector:@selector(stringValue)])
+    {
+        return [self initWithName:name stringValue:[objectValue stringValue]];
+    }
+    else
+    {
+        return [self initWithName:name];
+    }
+}
+
+/**
  * Quick method to create an element
 **/
 + (NSXMLElement *)elementWithName:(NSString *)name xmlns:(NSString *)ns
@@ -141,6 +195,62 @@
 }
 
 /**
+ * This method removes the first child element for the given name.
+ * If no child elements exist for the given name, this method does nothing.
+**/
+- (void)removeElementForName:(NSString *)name
+{
+    NSXMLElement *element = [self elementForName:name];
+
+    if(element)
+    {
+        [self removeChildAtIndex:[[self children] indexOfObject:element]];
+    }
+}
+
+/**
+ * This method removes the all child elements for the given name.
+ * If no child elements exist for the given name, this method does nothing.
+**/
+- (void)removeElementsForName:(NSString *)name
+{
+    NSArray *elements = [self elementsForName:name];
+    
+    for(NSXMLElement *element in elements)
+    {
+        [self removeChildAtIndex:[[self children] indexOfObject:element]];
+    }
+}
+
+/**
+ * This method removes the first child element for the given name and given xmlns.
+ * If no child elements exist for the given name and given xmlns, this method does nothing.
+**/
+- (void)removeElementForName:(NSString *)name xmlns:(NSString *)xmlns
+{
+    NSXMLElement *element = [self elementForName:name xmlns:xmlns];
+    
+    if(element)
+    {
+        [self removeChildAtIndex:[[self children] indexOfObject:element]];
+    }
+}
+
+/**
+ * This method removes the first child element for the given name and given xmlns prefix.
+ * If no child elements exist for the given name and given xmlns prefix, this method does nothing.
+**/
+- (void)removeElementForName:(NSString *)name xmlnsPrefix:(NSString *)xmlnsPrefix
+{
+    NSXMLElement *element = [self elementForName:name xmlnsPrefix:xmlnsPrefix];
+    
+    if(element)
+    {
+        [self removeChildAtIndex:[[self children] indexOfObject:element]];
+    }
+}
+
+/**
  * Returns the common xmlns "attribute", which is only accessible via the namespace methods.
  * The xmlns value is often used in jabber elements.
 **/
@@ -176,9 +286,61 @@
 /**
  *	Shortcut to avoid having to use NSXMLNode everytime
 **/
+
+- (void)addAttributeWithName:(NSString *)name intValue:(int)intValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithInt:intValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name boolValue:(BOOL)boolValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithBool:boolValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name floatValue:(float)floatValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithFloat:floatValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name doubleValue:(double)doubleValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithDouble:doubleValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name integerValue:(NSInteger)integerValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithInteger:integerValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name unsignedIntegerValue:(NSInteger)unsignedIntegerValue
+{
+    [self addAttributeWithName:name numberValue:[NSNumber numberWithUnsignedInteger:unsignedIntegerValue]];
+}
+
 - (void)addAttributeWithName:(NSString *)name stringValue:(NSString *)string
 {
 	[self addAttribute:[NSXMLNode attributeWithName:name stringValue:string]];
+}
+
+- (void)addAttributeWithName:(NSString *)name numberValue:(NSNumber *)number
+{
+    [self addAttributeWithName:name stringValue:[number stringValue]];
+}
+
+- (void)addAttributeWithName:(NSString *)name objectValue:(id)objectValue
+{
+    if([objectValue isKindOfClass:[NSString class]])
+    {
+        [self addAttributeWithName:name stringValue:objectValue];
+    }
+    else if([objectValue isKindOfClass:[NSNumber class]])
+    {
+        [self addAttributeWithName:name numberValue:objectValue];
+    }
+    else if([objectValue respondsToSelector:@selector(stringValue)])
+    {
+        [self addAttributeWithName:name stringValue:[objectValue stringValue]];
+    }
 }
 
 /**
@@ -191,7 +353,26 @@
 }
 - (BOOL)attributeBoolValueForName:(NSString *)name
 {
-	return [[self attributeStringValueForName:name] boolValue];
+    NSString *attributeStringValueForName = [self attributeStringValueForName:name];
+    
+    BOOL result = NO;
+    
+    // An XML boolean datatype can have the following legal literals: true, false, 1, 0
+    
+    if ([attributeStringValueForName isEqualToString:@"true"] || [attributeStringValueForName isEqualToString:@"1"])
+    {
+        result = YES;
+    }
+    else if([attributeStringValueForName isEqualToString:@"false"] || [attributeStringValueForName isEqualToString:@"0"])
+    {
+        result = NO;
+    }
+    else
+    {
+        result = [attributeStringValueForName boolValue];
+    }
+    
+    return result;
 }
 - (float)attributeFloatValueForName:(NSString *)name
 {
