@@ -23,6 +23,8 @@
     
     if ([self connect]) {
         NSLog(@"connect success");
+        
+        [self sendMessage:@"hello victor" toUser:@"victor@chee.com"];
     }
     else
     {
@@ -75,6 +77,13 @@
     NSXMLElement *body = [NSXMLElement elementWithName:@"body"];
     [body setStringValue:message];
     
+    NSXMLElement *mes = [NSXMLElement elementWithName:@"message"];
+    [mes addAttributeWithName:@"type" stringValue:@"chat"];
+    [mes addAttributeWithName:@"to" stringValue:user];
+    [mes addAttributeWithName:@"from" stringValue:@"chee@chee.com"];
+    [mes addChild:body];
+    
+    [self.xmppStream sendElement:mes];
 }
 
 - (XMPPStream *)xmppStream
@@ -101,7 +110,7 @@
 
 - (NSString *)generateID
 {
-    return @"chee@victorchee.com";
+    return @"chee@chee.com";
 }
 
 #pragma mark - XMPPStreamDelegate
