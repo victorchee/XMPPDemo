@@ -23,13 +23,19 @@
     
     if ([self connect]) {
         NSLog(@"connect success");
-        
-        [self sendMessage:@"hello victor" toUser:@"victor@chee.com"];
-    }
-    else
-    {
+    } else {
         NSLog(@"connect error");
     }
+    
+    double delayInSeconds = 5.0;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        NSLog(@"zzz");
+        if (!self.xmppStream.isDisconnected) {
+            NSLog(@"xxx");
+            [self sendMessage:@"hello victor" toUser:@"victor"];
+        }
+    });
 }
 
 - (void)viewDidDisappear:(BOOL)animated
@@ -79,11 +85,13 @@
     
     NSXMLElement *mes = [NSXMLElement elementWithName:@"message"];
     [mes addAttributeWithName:@"type" stringValue:@"chat"];
-    [mes addAttributeWithName:@"to" stringValue:user];
-    [mes addAttributeWithName:@"from" stringValue:@"chee@chee.com"];
+    [mes addAttributeWithName:@"to" stringValue:[NSString stringWithFormat:@"%@@%@", user, self.xmppStream.myJID.domain]];
+    [mes addAttributeWithName:@"from" stringValue:[self.xmppStream.myJID.user stringByAppendingString:self.xmppStream.myJID.domain]];
     [mes addChild:body];
     
     [self.xmppStream sendElement:mes];
+    
+    NSLog(@"send message : %@ to %@", message, user);
 }
 
 - (XMPPStream *)xmppStream
